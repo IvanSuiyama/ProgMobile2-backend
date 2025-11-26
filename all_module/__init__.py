@@ -1,0 +1,1 @@
+# Módulo All - Gerenciamento da tabela 'all' para dados JSON brutos

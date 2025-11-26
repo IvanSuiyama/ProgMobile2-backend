@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Ambiente virtual
+venv/
+ENV/
+.env
+.venv/
+
+# Banco de dados local
+sensores.db
+*.sqlite3
+*.db
+
+# Configurações locais/secretas
+.env.*
+*.env
+
+# VSCode
+.vscode/
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+*.swp
+*.bak
+*.orig
+.DS_Store
+Thumbs.db
+
+# Testes e cache
+.cache/
+pytest_cache/
+
+# Jupyter/Notebooks
+.ipynb_checkpoints/
+
+# Sistema
+*.~*
+
+# Outros
+# Ignore arquivos de backup do editor
+*~
+# Ignore arquivos de lock do pip
+Pipfile.lock
+poetry.lock

@@ -1,0 +1,20 @@
+# Requirements específicos para Raspberry Pi
+# Execute este comando no Raspberry Pi para instalar as dependências GPIO:
+# pip3 install -r requirements_raspberry.txt
+
+# Dependências básicas do projeto
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+python-multipart==0.0.6
+paho-mqtt==1.6.1
+asyncio-mqtt==0.16.1
+aiomqtt==2.0.1
+
+# Dependências específicas para GPIO e sensores
+RPi.GPIO==0.7.1
+adafruit-circuitpython-dht==3.7.8
+adafruit-blinka==8.22.2
+
+# Dependência opcional para sensores avançados
+# gpiozero==1.6.2

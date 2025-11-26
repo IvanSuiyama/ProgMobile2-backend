@@ -1,0 +1,1 @@
+# Módulo MQTT - Gerenciamento de comunicação MQTT com ESP32
