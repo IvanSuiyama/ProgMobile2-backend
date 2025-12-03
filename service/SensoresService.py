@@ -38,7 +38,7 @@ class SensoresService:
         except SQLAlchemyError as e:
             raise Exception(f"Erro ao buscar sensores por tipo: {str(e)}")
     
-    def criar(self, nome: str, tipo: str, valor: float, unidade: str) -> Sensor:
+    def criar(self, nome: str, tipo: str, unidade: str) -> Sensor:
         """
         Cria um novo sensor
         """
@@ -46,7 +46,6 @@ class SensoresService:
             novo_sensor = Sensor(
                 nome=nome,
                 tipo=tipo,
-                valor=valor,
                 unidade=unidade
             )
             
@@ -60,8 +59,7 @@ class SensoresService:
             raise Exception(f"Erro ao criar sensor: {str(e)}")
     
     def atualizar(self, sensor_id: int, nome: Optional[str] = None, 
-                  tipo: Optional[str] = None, valor: Optional[float] = None, 
-                  unidade: Optional[str] = None) -> Optional[Sensor]:
+                  tipo: Optional[str] = None, unidade: Optional[str] = None) -> Optional[Sensor]:
         """
         Atualiza um sensor existente
         """
@@ -76,8 +74,6 @@ class SensoresService:
                 sensor.nome = nome
             if tipo is not None:
                 sensor.tipo = tipo
-            if valor is not None:
-                sensor.valor = valor
             if unidade is not None:
                 sensor.unidade = unidade
             

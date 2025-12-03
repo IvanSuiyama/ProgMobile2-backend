@@ -67,11 +67,8 @@ class SensoresController:
             if not nome or not tipo or not unidade:
                 raise HTTPException(status_code=400, detail="Nome, tipo e unidade são obrigatórios")
             
-            if valor is None:
-                raise HTTPException(status_code=400, detail="Valor é obrigatório")
-            
             service = SensoresService(db)
-            novo_sensor = service.criar(nome, tipo, valor, unidade)
+            novo_sensor = service.criar(nome, tipo, unidade)
             
             return novo_sensor.to_dict()
         except HTTPException:
@@ -84,7 +81,6 @@ class SensoresController:
         sensor_id: int,
         nome: Optional[str] = None,
         tipo: Optional[str] = None,
-        valor: Optional[float] = None,
         unidade: Optional[str] = None,
         db: Session = Depends(get_database)
     ) -> dict:
@@ -93,7 +89,7 @@ class SensoresController:
         """
         try:
             service = SensoresService(db)
-            sensor_atualizado = service.atualizar(sensor_id, nome, tipo, valor, unidade)
+            sensor_atualizado = service.atualizar(sensor_id, nome, tipo, unidade)
             
             if sensor_atualizado is None:
                 raise HTTPException(status_code=404, detail="Sensor não encontrado")

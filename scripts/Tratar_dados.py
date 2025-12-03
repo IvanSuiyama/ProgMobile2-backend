@@ -8,6 +8,8 @@ import asyncio
 from datetime import datetime
 from all_module.AllService import AllService
 from service.SensoresService import SensoresService
+from service.ValoresSensorService import ValoresSensorService
+from config.databaseConfig import SessionLocal
 
 class TratarDados:
     """
@@ -15,8 +17,17 @@ class TratarDados:
     """
     
     def __init__(self):
-        self.all_service = AllService()
-        self.sensores_service = SensoresService()
+        self.db = SessionLocal()
+        self.all_service = AllService(self.db)
+        self.sensores_service = SensoresService(self.db)
+        self.valores_service = ValoresSensorService(self.db)
+    
+    def __del__(self):
+        """
+        Fecha a sessão do banco ao destruir o objeto
+        """
+        if hasattr(self, 'db'):
+            self.db.close()
         
     async def processar_todos_dados(self):
         """
@@ -125,12 +136,12 @@ class TratarDados:
                 print(f"  🔧 Processando sensor: {nome_sensor} = {valor}")
                 
                 # Verificar se o sensor já existe no banco
-                sensor_existente = await self.buscar_sensor_por_nome(nome_sensor)
+                sensor_existente = self.buscar_sensor_por_nome(nome_sensor)
                 
                 if sensor_existente:
-                    # Atualizar sensor existente
-                    await self.atualizar_sensor(sensor_existente, valor)
-                    sucessos += 1
+                    # Criar novo valor para o sensor existente
+                    if self.criar_valor_sensor_sync(sensor_existente, valor):
+                        sucessos += 1
                 else:
                     print(f"  ⚠️ Sensor '{nome_sensor}' não encontrado no banco de dados")
                     print(f"  💡 Dica: Crie o sensor '{nome_sensor}' pelo frontend primeiro!")
@@ -140,12 +151,12 @@ class TratarDados:
         
         return sucessos > 0
     
-    async def buscar_sensor_por_nome(self, nome):
+    def buscar_sensor_por_nome(self, nome):
         """
         Busca um sensor pelo nome
         """
         try:
-            sensores = await self.sensores_service.get_all_sensores()
+            sensores = self.sensores_service.listar_todos()
             for sensor in sensores:
                 if sensor.nome.lower() == nome.lower():
                     return sensor
@@ -154,9 +165,9 @@ class TratarDados:
             print(f"❌ Erro ao buscar sensor por nome '{nome}': {e}")
             return None
     
-    async def atualizar_sensor(self, sensor, novo_valor):
+    async def criar_valor_sensor(self, sensor, novo_valor):
         """
-        Atualiza o valor de um sensor existente
+        Cria um novo valor para o sensor
         """
         try:
             # Converter valor para float se possível
@@ -172,25 +183,21 @@ class TratarDados:
                 print(f"  ⚠️ Tipo de valor inválido para sensor '{sensor.nome}': {type(novo_valor)}")
                 return False
             
-            # Atualizar o sensor
-            dados_atualizacao = {
-                "nome": sensor.nome,
-                "tipo": sensor.tipo,
-                "valor": valor_float,
-                "unidade": sensor.unidade
-            }
+            # Criar novo valor para o sensor
+            novo_valor_obj = self.valores_service.criar_valor(
+                valor=valor_float,
+                id_sensor=sensor.id
+            )
             
-            sensor_atualizado = await self.sensores_service.update_sensor(sensor.id, dados_atualizacao)
-            
-            if sensor_atualizado:
-                print(f"  ✅ Sensor '{sensor.nome}' atualizado: {sensor.valor} → {valor_float} {sensor.unidade}")
+            if novo_valor_obj:
+                print(f"  ✅ Valor criado para sensor '{sensor.nome}': {valor_float} {sensor.unidade}")
                 return True
             else:
-                print(f"  ❌ Falha ao atualizar sensor '{sensor.nome}'")
+                print(f"  ❌ Falha ao criar valor para sensor '{sensor.nome}'")
                 return False
                 
         except Exception as e:
-            print(f"  ❌ Erro ao atualizar sensor '{sensor.nome}': {e}")
+            print(f"  ❌ Erro ao criar valor para sensor '{sensor.nome}': {e}")
             return False
 
 async def main():

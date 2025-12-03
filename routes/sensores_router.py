@@ -29,24 +29,22 @@ async def listar_sensores_por_tipo(tipo_sensor: str, db: Session = Depends(get_d
 async def criar_sensor(
     nome: str,
     tipo: str, 
-    valor: float,
     unidade: str,
     db: Session = Depends(get_database)
 ):
     """Cria um novo sensor"""
-    return await SensoresController.criar_sensor(nome, tipo, valor, unidade, db)
+    return await SensoresController.criar_sensor(nome, tipo, unidade, db)
 
 @router.put("/{sensor_id}")
 async def atualizar_sensor(
     sensor_id: int,
     nome: str = None,
     tipo: str = None,
-    valor: float = None,
     unidade: str = None,
     db: Session = Depends(get_database)
 ):
     """Atualiza um sensor"""
-    return await SensoresController.atualizar_sensor(sensor_id, nome, tipo, valor, unidade, db)
+    return await SensoresController.atualizar_sensor(sensor_id, nome, tipo, unidade, db)
 
 @router.delete("/{sensor_id}")
 async def deletar_sensor(sensor_id: int, db: Session = Depends(get_database)):

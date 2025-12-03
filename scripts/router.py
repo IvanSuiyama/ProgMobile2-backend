@@ -4,6 +4,7 @@ from routes.usuarios_router import router as usuarios_router
 from routes.geral_router import router as geral_router
 from all_module.all_router import router as all_router
 from routes.alerta_router import router as alerta_router
+from controller.ValoresSensorController import router as valores_router
 
 def configure_routes(app: FastAPI):
     """
@@ -25,6 +26,9 @@ def configure_routes(app: FastAPI):
     # Incluir rotas de alertas
     app.include_router(alerta_router)
     
+    # Incluir rotas de valores dos sensores
+    app.include_router(valores_router)
+    
     # Rota principal (fora dos prefixos)
     @app.get("/")
     async def root():
@@ -36,6 +40,8 @@ def configure_routes(app: FastAPI):
             "endpoints": {
                 "sensores": "/sensores",
                 "usuarios": "/usuarios",
+                "valores": "/valores",
+                "alertas": "/alertas",
                 "api_geral": "/api"
             }
         }

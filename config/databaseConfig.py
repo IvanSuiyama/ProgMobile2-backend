@@ -37,7 +37,7 @@ def create_tables():
     Função para criar todas as tabelas no banco de dados.
     """
     # Importar todos os modelos para garantir que sejam registrados
-    from model.sensoresModel import Sensor
+    from model.sensoresModel import Sensor, ValoresSensor
     from model.usuariosModel import Usuarios
     from all_module.allModel import All
     from model.alertaModel import Alerta
@@ -45,6 +45,7 @@ def create_tables():
     Base.metadata.create_all(bind=engine)
     print("Tabelas criadas com sucesso!")
     print("- Tabela 'sensores' criada")
+    print("- Tabela 'valores_sensor' criada")
     print("- Tabela 'usuarios' criada")
     print("- Tabela 'all' criada")
     print("- Tabela 'alerta' criada")
