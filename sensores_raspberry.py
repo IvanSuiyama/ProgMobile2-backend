@@ -1,24 +1,15 @@
 #!/usr/bin/env python3
 """
-Script para leitura de sensores conectados diretamente ao GPIO do Raspberry Pi
+Script para simulação de sensores de temperatura e umidade
 e publicação dos dados via MQTT
 """
 
 import time
 import json
 import logging
+import random
 from datetime import datetime
 import paho.mqtt.client as mqtt
-
-# Configurações para importar as bibliotecas GPIO
-try:
-    import RPi.GPIO as GPIO
-    import adafruit_dht
-    import board
-    GPIO_AVAILABLE = True
-except ImportError:
-    print("⚠️ Bibliotecas GPIO não encontradas. Execute em modo simulação.")
-    GPIO_AVAILABLE = False
 
 # ==============================================================
 # CONFIGURAÇÕES
@@ -50,125 +41,80 @@ class SensorGPIO:
     """
     
     def __init__(self):
-        self.dht_sensor = None
-        self.setup_gpio()
-        
-    def setup_gpio(self):
-        """
-        Configura os pinos GPIO
-        """
-        if not GPIO_AVAILABLE:
-            logger.warning("GPIO não disponível. Modo simulação ativo.")
-            return
-            
-        try:
-            # Configurar modo GPIO
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setwarnings(False)
-            
-            # LEDs como saída
-            GPIO.setup(LED_VERDE_PIN, GPIO.OUT)
-            GPIO.setup(LED_VERMELHO_PIN, GPIO.OUT)
-            
-            # Configurar LDR como entrada (método de tempo RC)
-            # Será configurado dinamicamente no método de leitura
-            
-            # Sensor DHT11 (ao invés de DHT22)
-            self.dht_sensor = adafruit_dht.DHT11(getattr(board, f'D{DHT_PIN}'))
-            
-            # Inicializar LEDs
-            GPIO.output(LED_VERDE_PIN, GPIO.LOW)
-            GPIO.output(LED_VERMELHO_PIN, GPIO.LOW)
-            
-            logger.info("✅ GPIO configurado com sucesso!")
-            
-        except Exception as e:
-            logger.error(f"❌ Erro ao configurar GPIO: {e}")
+        """Inicializa sensores em modo simulação"""
+        import math
+        self.temperatura_base = 25.0
+        self.umidade_base = 60.0
+        self.variacao_tempo = 0
+        logger.info("✅ Sensores inicializados em modo simulação!")
     
     def ler_temperatura_umidade(self):
         """
-        Lê temperatura e umidade do sensor DHT22
+        Simula leitura de temperatura e umidade com variações realísticas
         """
-        if not GPIO_AVAILABLE or not self.dht_sensor:
-            # Modo simulação - valores aleatórios
-            import random
-            return round(20 + random.uniform(-5, 15), 1), round(50 + random.uniform(-20, 30), 1)
+        import random
+        import math
         
-        try:
-            temperatura = self.dht_sensor.temperature
-            umidade = self.dht_sensor.humidity
-            
-            if temperatura is not None and umidade is not None:
-                return round(temperatura, 1), round(umidade, 1)
-            else:
-                logger.warning("⚠️ Falha na leitura do DHT11")
-                return None, None
-                
-        except Exception as e:
-            logger.error(f"❌ Erro ao ler DHT11: {e}")
-            return None, None
+        # Incrementar contador de tempo para variações
+        self.variacao_tempo += 1
+        
+        # Temperatura varia entre 18°C e 35°C com padrão senoidal
+        variacao_temp = math.sin(self.variacao_tempo * 0.01) * 5
+        temperatura = round(self.temperatura_base + variacao_temp + random.uniform(-2, 2), 1)
+        temperatura = max(18.0, min(35.0, temperatura))
+        
+        # Umidade varia entre 30% e 85% inversamente relacionada à temperatura
+        variacao_umidade = math.cos(self.variacao_tempo * 0.01) * 10
+        umidade = round(self.umidade_base + variacao_umidade + random.uniform(-5, 5), 1)
+        umidade = max(30.0, min(85.0, umidade))
+        
+        logger.debug(f"🌡️ Simulação - Temp: {temperatura}°C, Umidade: {umidade}%")
+        return temperatura, umidade
     
     def ler_luminosidade(self):
         """
-        Lê luminosidade do sensor LDR usando método RC (tempo de carga)
-        Equivale ao analogRead() do Arduino, mas usando tempo ao invés de ADC
+        Simula leitura de luminosidade com variação diurna realística
         """
-        if not GPIO_AVAILABLE:
-            # Modo simulação
-            import random
-            return random.randint(100, 900)
+        import random
+        import math
+        from datetime import datetime
         
-        try:
-            # Método RC: mede tempo para carregar capacitor através do LDR
-            # Equivale ao analogRead() do Arduino
+        # Simular ciclo dia/noite baseado na hora atual
+        hora_atual = datetime.now().hour
+        
+        if 6 <= hora_atual <= 18:  # Período diurno (6h às 18h)
+            # Luminosidade alta durante o dia com pico ao meio-dia
+            luz_base = 200 + (600 * math.sin((hora_atual - 6) * math.pi / 12))
+        else:  # Período noturno
+            luz_base = 50 + random.uniform(-20, 30)
             
-            count = 0
-            
-            # 1. Configurar pino como saída e descarregar capacitor (digitalWrite LOW)
-            GPIO.setup(LDR_PIN, GPIO.OUT)
-            GPIO.output(LDR_PIN, GPIO.LOW)
-            time.sleep(0.1)  # Descarregar completamente
-            
-            # 2. Configurar como entrada (pinMode INPUT)
-            GPIO.setup(LDR_PIN, GPIO.IN)
-            
-            # 3. Contar tempo até o pino ficar HIGH (digitalRead)
-            start_time = time.time()
-            while GPIO.input(LDR_PIN) == GPIO.LOW:
-                count += 1
-                if count > 100000:  # Timeout para evitar loop infinito
-                    break
-                    
-            # Converter contagem em valor similar ao analogRead (0-1023)
-            luminosidade = min(count // 100, 1023)
-            
-            return luminosidade
-            
-        except Exception as e:
-            logger.error(f"❌ Erro ao ler LDR: {e}")
-            return 0
+        # Adicionar variação aleatória para simular nuvens/sombras
+        luminosidade = round(luz_base + random.uniform(-50, 50))
+        luminosidade = max(0, min(1023, luminosidade))  # Manter na faixa 0-1023
+        
+        logger.debug(f"💡 Simulação - Luminosidade: {luminosidade}")
+        return luminosidade
     
 
     
     def controlar_leds(self, verde=False, vermelho=False):
         """
-        Controla os LEDs indicadores
+        Simula controle de LEDs (apenas log em modo simulação)
         """
-        if not GPIO_AVAILABLE:
-            return
-            
-        try:
-            GPIO.output(LED_VERDE_PIN, GPIO.HIGH if verde else GPIO.LOW)
-            GPIO.output(LED_VERMELHO_PIN, GPIO.HIGH if vermelho else GPIO.LOW)
-        except Exception as e:
-            logger.error(f"❌ Erro ao controlar LEDs: {e}")
+        status = []
+        if verde: status.append("VERDE")
+        if vermelho: status.append("VERMELHO")
+        
+        if status:
+            logger.debug(f"🚥 LEDs: {', '.join(status)}")
+        else:
+            logger.debug("🚥 LEDs: DESLIGADOS")
     
     def cleanup(self):
         """
-        Limpa configurações GPIO
+        Finaliza simulação de sensores
         """
-        if GPIO_AVAILABLE:
-            GPIO.cleanup()
+        logger.info("✨ Simulação de sensores finalizada")
 
 
 # ==============================================================

@@ -5,7 +5,7 @@ import asyncio
 
 # Importações locais
 from config.databaseConfig import create_tables
-from model.sensoresModel import criar_tabela_sensores
+from model.sensoresModel import criar_tabelas_sensores
 from all_module.allModel import criar_tabela_all
 from scripts.router import configure_routes
 from mqtt_module.MQTTService import configure_mqtt_service, start_mqtt_service, stop_mqtt_service
