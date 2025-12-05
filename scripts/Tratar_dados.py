@@ -165,6 +165,41 @@ class TratarDados:
             print(f"❌ Erro ao buscar sensor por nome '{nome}': {e}")
             return None
     
+    def criar_valor_sensor_sync(self, sensor, novo_valor):
+        """
+        Versão síncrona de criar_valor_sensor
+        """
+        try:
+            # Converter valor para float se possível
+            if isinstance(novo_valor, (int, float)):
+                valor_float = float(novo_valor)
+            elif isinstance(novo_valor, str):
+                try:
+                    valor_float = float(novo_valor)
+                except ValueError:
+                    print(f"  ⚠️ Valor '{novo_valor}' não é numérico para sensor '{sensor.nome}'")
+                    return False
+            else:
+                print(f"  ⚠️ Tipo de valor inválido para sensor '{sensor.nome}': {type(novo_valor)}")
+                return False
+            
+            # Criar novo valor para o sensor
+            novo_valor_obj = self.valores_service.criar_valor(
+                valor=valor_float,
+                id_sensor=sensor.id
+            )
+            
+            if novo_valor_obj:
+                print(f"  ✅ Valor criado para sensor '{sensor.nome}': {valor_float} {sensor.unidade}")
+                return True
+            else:
+                print(f"  ❌ Falha ao criar valor para sensor '{sensor.nome}'")
+                return False
+                
+        except Exception as e:
+            print(f"  ❌ Erro ao criar valor para sensor '{sensor.nome}': {e}")
+            return False
+    
     async def criar_valor_sensor(self, sensor, novo_valor):
         """
         Cria um novo valor para o sensor

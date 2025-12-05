@@ -30,16 +30,10 @@ class Sensor(Base):
         """
         Converte o objeto Sensor em dicionário para serialização JSON.
         """
-        # Buscar o valor mais recente
-        ultimo_valor = None
-        if self.valores:
-            ultimo_valor = max(self.valores, key=lambda v: v.timestamp).valor
-        
         return {
             "id": self.id,
             "nome": self.nome,
             "tipo": self.tipo,
-            "valor": ultimo_valor,
             "unidade": self.unidade
         }
 

@@ -55,7 +55,6 @@ class SensoresController:
     async def criar_sensor(
         nome: str,
         tipo: str,
-        valor: float,
         unidade: str,
         db: Session = Depends(get_database)
     ) -> dict:
